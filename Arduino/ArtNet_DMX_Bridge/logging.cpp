@@ -5,22 +5,19 @@ extern "C" {
 }
 #include <stdio.h>
 #include <string.h>
-#include "logging.h"
+#include "modules.h"  // Concatenation of all 'header' files since they can't be named correctly
+                      // due to Arduino IDE
 
-
-#define UDP_LOGGING 1
 
 #if defined(UDP_LOGGING)
 
 #define LOG_BUF_SZ 256
-int log_sock = 0;
-int log_port = 4444;
-uint8_t log_ip[] = {10,10,10,10};
 uint8_t log_buf[LOG_BUF_SZ];
 
-void log_send(uint8_t *buf,uint16_t len) {  
+void log_send(uint8_t *buf,uint16_t len) {
+  char * ip = FSTR(LOG_TO_IP);
   if(len > 0 && len < 256)
-    sendto(log_sock, buf,len,log_ip, log_port );
+    sendto(LOG_SOCKET, buf,len,(uint8*)ip, LOG_TO_PORT );
 }
 
 void log_debug(char *text,int line) {

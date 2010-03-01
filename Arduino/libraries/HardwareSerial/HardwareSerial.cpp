@@ -206,8 +206,9 @@ int HardwareSerial::read(void)
 }
 
 uint8_t HardwareSerial::write(uint8_t *data,uint16_t length,void(*completion_routine)()) {
-	if(!tx_internal_buffer) return 0;	// Ongoing output with internal buffer. We must balk (or implement circular buffer of buffers, with pointer analysis etc etc)
-
+	if(!tx_internal_buffer) return 0;				// Ongoing output with external buffer. Exit false
+	while(tx_buffer.head != tx_buffer.tail)			// Wait for empty internal buffer
+		;
     tx_internal_buffer = 0;		// Use external buffer
 	external_buffer = data;
 	external_completion_routine = completion_routine;
