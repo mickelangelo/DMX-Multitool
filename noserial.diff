@@ -1,0 +1,17 @@
+Only in arduino: HardwareSerial.cpp
+Only in arduino: HardwareSerial.h
+diff -rU2 arduino/WProgram.h arduino_noserial/WProgram.h
+--- arduino/WProgram.h	2009-12-13 17:53:55.000000000 +0100
++++ arduino_noserial/WProgram.h	2009-12-13 18:00:46.000000000 +0100
+@@ -10,10 +10,8 @@
+ #include "wiring.h"
+ 
+-#ifdef __cplusplus
+-#include "HardwareSerial.h"
+-
+ uint16_t makeWord(uint16_t w);
+ uint16_t makeWord(byte h, byte l);
+ 
++#ifdef __cplusplus
+ #define word(...) makeWord(__VA_ARGS__)
+ 
