@@ -38,7 +38,7 @@ uint8_t mac[] = {0x00,0x08,0xDC,0x00,0x00,0x4F};
 
 volatile uint8_t ready_for_dmx_data = 1;
 
-struct addr_s {
+typedef struct addr_s {
   union {
     uint8 ip[4];
     struct {
@@ -49,11 +49,11 @@ struct addr_s {
     };
   };
   void operator=(uint8* data);
-};
+} addr_t;
 
-struct mac_s {
+typedef struct mac_s {
   union {
-    uint8 mac[6];
+    uint8 data[6];
     struct {
       uint8 a;
       uint8 b;
@@ -64,40 +64,70 @@ struct mac_s {
     };
   };
   void operator=(uint8* data);
-};
+} mac_t;
 
-struct config_s {
-  uint8 magic[4];
-  struct node_config_s {
-    addr_s addr;
-    addr_s gw;
-    addr_s subnet_mask;
-    mac_s mac;
-  } node;
-  struct artnet_config_s {
+typedef  struct node_config_s {
+    addr_t addr;
+    addr_t gw;
+    addr_t subnet_mask;
+    mac_t mac;
+ } node_config_t;
+typedef  struct artnet_config_s {
     uint16 port;
     uint8  universe;
     uint8  udp_socket;
     DECLARE_LOCK(processing);
-  } artnet;
-} config;
+  } artnet_config_t;
+
+struct config_s {
+  uint8 magic[4];
+  node_config_t node;
+  artnet_config_t artnet;
+} config = {{'C','n','F','g'},
+  {
+    {10,10,10,20},
+    {10,10,10,1},
+    {255,255,255,0},
+    {0x00,0x08,0xDC,0x00,0x00,0x4F}
+  }, {
+    0x1936,
+    1,
+    0,
+    UNLOCKED
+  }};
 
 
 void addr_s::operator=(uint8* data) {
+     this->a = data[0];
+     this->b = data[1];
+     this->c = data[2];
+     this->d = data[3];
 }
 
 void mac_s::operator=(uint8* data) {
+     this->a = data[0];
+     this->b = data[1];
+     this->c = data[2];
+     this->d = data[3];
+}
+
+void read_config_from_eeprom() {
 }
 
 void setup() {
- Serial.begin(115200);
- UCSR0C |= (1<< USBS0);  //2 stop bits
+ Serial.begin(250000);    //Baudrate for DMX
+ UCSR0C |= (1<< USBS0);  //Default is 8n1, just add 2 stop bits to the mix
+
+ read_config_from_eeprom();
+ 
  iinchip_init();
  sysinit(0x55,0x55);
- setSHAR(mac);
- setSIPR(ip);
- setGAR(gw);
- setSUBR(subnet_mask);
+ 
+ node_config_t & node = config.node;
+ setSIPR(node.addr.ip);
+ setGAR(node.gw.ip);
+ setSUBR(node.subnet_mask.ip);
+ 
  socket(sock,Sn_MR_UDP,artnet_port,0);
  DEBUG("WIZnet INIT OK");
  INFO("-- RUNNING --");
